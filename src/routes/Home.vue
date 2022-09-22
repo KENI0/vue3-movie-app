@@ -1,6 +1,16 @@
 <template>
-  <h1>home</h1>
-  <div class="btn btn-primary">
-    home
-  </div>
+  <Headline></Headline>
+  <Search></Search>
 </template>
+
+<script>
+  import Headline from '~/components/Headline.vue'
+  import Search from '~/components/Search'
+
+  export default {
+    components: {
+      Headline,
+      Search
+    }
+  }
+</script>
