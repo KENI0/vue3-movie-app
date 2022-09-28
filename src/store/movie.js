@@ -24,12 +24,13 @@ export default {
   
   actions: {
     async searchMovies({ state, commit }, payload) {
-      const { title, type, number, year} = payload
-      const OMBD_API_KEY = '7035c60c' 
-
-      const res = 
-          await axios.get(`https://www.omdbapi.com/?apikey=${OMBD_API_KEY}&s=${title}&type=${type}&y=${year}&page=1`)
-           console.log(res)
+      try{
+        
+      const res = await _fetchMovie({
+        ...payload,
+        page: 1
+      })
+         
 
         // res의 data속성안에 내용을 객체구조분해하는 모습. 
         // Search와 totalResults는 movie omdbi 에서 제공하는 문법이다. 
@@ -46,8 +47,11 @@ export default {
         if(pageLength > 1 ) {
           for( let page = 2 ; page <= pageLength; page += 1) {
             //사용자가 지정한 number 수대로 반복문을 설정해주는 로직이다
-            if(page > ( number / 10 ))  break      //  === if(page > ( number / 10 )) { break }       
-            const res = await axios.get(`https://www.omdbapi.com/?apikey=${OMBD_API_KEY}&s=${title}&type=${type}&y=${year}&page=${page}`)
+            if(page > ( payload.number / 10 ))  break      //  === if(page > ( number / 10 )) { break }       
+            const res = await _fetchMovie({
+              ...payload,
+              page // page: page
+            })
             const { Search } = res.data 
             // 배열안에서 전개연산자를 통해서, 기존에 배열안에있던 데이터를 전개해줌 
             // 그래서 새로운 배열을 만들어서 다시 새로운 값들이 추가될때마다 할당해주는 로직 이다. 
@@ -62,9 +66,32 @@ export default {
 
           }
         }
-
-      
+      } catch(message) {
+        commit('updateState', {
+          movies: [],
+          message
+        })
     }
   }
+}
+}
+ //fetchMovie앞에 언더바 (movie.js에서만 쓴다는 의미)
+ function _fetchMovie(payload){
+  const {title, type, year, page} = payload
+  const OMBD_API_KEY = '7035c60c' 
+  const url = `https://www.omdbapi.com/?apikey=${OMBD_API_KEY}&s=${title}&type=${type}&y=${year}&page=${page}`
 
+  return new Promise((resolve, reject) => {
+    axios.get(url)
+      .then(res => {
+        
+        if(res.data.Error) {
+          reject(res.data.Error)
+        }
+        resolve(res)
+      })
+      .catch((err) => {
+        reject(err.message)
+      })
+  })
 }
